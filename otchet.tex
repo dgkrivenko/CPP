@@ -1,0 +1,129 @@
+\documentclass[pdf, unicode, 12pt, a4paper,oneside,fleqn]{article}
+\usepackage[utf8]{inputenc}\usepackage[T2B]{fontenc}\usepackage[english,russian]{babel}\frenchspacing\usepackage{amsmath}\usepackage{amssymb}\usepackage{hyperref}\usepackage{longtable}\usepackage[table]{xcolor}  \usepackage{array}\usepackage{color}\usepackage{xcolor}\usepackage{hyperref}\newcommand{\MYhref}[3][blue]{\href{#2}{\color{#1}{#3}}}%\usepackage{listings}\usepackage{alltt}\usepackage{csquotes}\DeclareQuoteStyle{russian}	{\guillemotleft}{\guillemotright}[0.025em]	{\quotedblbase}{\textquotedblleft}\ExecuteQuoteOptions{style=russian}\usepackage{graphicx}\usepackage{listings}\lstset{tabsize=2,	breaklines,	columns=fullflexible,	flexiblecolumns,	numbers=left,	numberstyle={\footnotesize},	extendedchars,	inputencoding=utf8}\usepackage{longtable}\def\@xobeysp{ }\def\verbatim@processline{\hspace{1.2cm}\raggedright\the\verbatim@line\par}\oddsidemargin=-0.4mm\textwidth=160mm\topmargin=4.6mm\textheight=210mm\parindent=0pt\parskip=3pt\definecolor{lightgray}{gray}{0.9}\renewcommand{\thesubsection}{\arabic{subsection}}\lstdefinestyle{customc}{  belowcaptionskip=1\baselineskip,  breaklines=true,  frame=L,  xleftmargin=\parindent,  language=C,  showstringspaces=false,  basicstyle=\footnotesize\ttfamily,  keywordstyle=\bfseries\color{green!40!black},  commentstyle=\itshape\color{gray},  identifierstyle=\color{black},  stringstyle=\color{blue},}\lstdefinestyle{customasm}{  belowcaptionskip=1\baselineskip,  frame=L,  xleftmargin=\parindent,  language=[x86masm]Assembler,  basicstyle=\footnotesize\ttfamily,  commentstyle=\itshape\color{purple!40!black},}\lstset{escapechar=@,style=customc}\newcommand{\CWPHeader}[1]{\addtocounter{section}{-1}\section{#1}}% Заголовок курсовой работы% Единственный аргумент --- ее тема\newcommand{\CWHeader}[1]{\section*{#1}}\newcommand{\CWProblem}[1]{\par\textbf{Задача: }#1}
+\begin{document}
+\begin{titlepage}\begin{center}\bfseries{\Large Московский авиационный институт\\ (национальный исследовательский университет)}\vspace{48pt}{\large Факультет прикладной математики и физики}\vspace{36pt}{\large Кафедра вычислительной математики и~программирования}\vspace{48pt}{ Лабораторная работа №2 по курсу <<Дискретный анализ>>}\end{center}\vspace{72pt}\begin{flushright}\begin{tabular}{rl}Студент: & Д.\,Г. Кривенко \\Преподаватель: & А.\,А. Кухтичев \\Группа: & 80-206 \\Дата: & \\Оценка: & \\Подпись: & \\\end{tabular}\end{flushright}\vfill\begin{center}\bfseriesМосква, 2016\end{center}\end{titlepage}\pagebreak
+\newpage
+
+\CWHeader{Лабораторная работа \textnumero 2}\CWProblem{Необходимо создать программную библиотеку, реализующую указанную структуру данных, на основе которой разработать программу -- словарь. В словаре каждому ключу, представляющему из себя регистронезависимую последовательность букв английского алфавита длиной не более 256 символов, поставлен в соответствие некоторый номер, от 0 до $2^{64} - 1$. Разным словам может быть поставлен в соответствие один и тот же номер.{\bfseries Вариант структуры :} АВЛ -- дерево.}\pagebreak
+\section{Описание}Требуется реализовать АВЛ-дерево. \\ 
+АВЛ--дерево -- сбалансированное по высоте двоичное дерево поиска: для каждой его вершины высота её двух поддеревьев различается не более чем на единицу\cite{wikipedia_tree}. Так как в ходе работы с деревом его высота может измениться, а баланс нарушиться, применяют такую оперцию как балансировка вершины. \\ 
+Балансировкой вершины называется операция, которая в случае разницы высот левого и правого поддеревьев равной 2, изменяет связи предок -- потомок в поддереве данной вершины так, что разница становится меньше либо равной 1, иначе ничего не меняет\cite{wikipedia_tree}. Указанный результат получается вращениями поддерева данной вершины. \\
+Существует несколько типов вращений: малое левое вращение, малое правое вращение, большое правое вращение, большое левое вращение. Большое вращение -- это комбинация правого и левого малых вращений.
+Опишем псевдокодом малый левый поворот\cite{wikipedia_avl}:
+\begin{lstlisting}[language=C++]
+	function rotateLeft(Node a):
+   Node b = a.right
+   a.right = b.left
+   b.left = a
+   height adjustment
+\end{lstlisting}
+Опишем псевдокодом большой левый поворот\cite{wikipedia_avl}:
+   \begin{lstlisting}[language=C++]
+   function bigRotateLeft(Node a):
+   rotateRight(a.right)
+   rotateLeft(a)
+\end{lstlisting}Малое правое и большое правое вращение определяются симметрично малому левому и большому левому вращению.\\ 
+Алгоритм добавления вершины\cite{wikipedia_tree}: \begin{enumerate}
+	\item Проход по пути поиска, пока не убедимся, что ключа в дереве нет.
+	\item Включение новой вершины в дерево.
+	\item «Отступления» назад по пути поиска и проверка в каждой вершине показателя сбалансированности. Если необходимо — балансировка. 
+\end{enumerate} 
+Алгоритм удаления вершины:
+\begin{enumerate}
+	\item  Если вершина -- лист, то удалим её и вызовем балансировку всех её предков в порядке от родителя к корню.
+	\item Найдём самую близкую по значению вершину в поддереве наибольшей высоты (правом или левом).
+	\item Переместим найденную вершину на место удаляемой вершины.
+	\item Вызовем процедуру удаления найденной вершины.
+\end{enumerate} 
+Операция поиска выполняется аналогично операции поиска в бинарном дереве.\pagebreak
+\section{Исходный код}Программа должна обрабатывать строки входного файла до его окончания. Каждая строка может иметь следующий формат:
+
++ word 34 -- добавить слово «word» с номером 34 в словарь. Программа должна вывести строку «OK», если операция прошла успешно, «Exist», если слово уже находится в словаре.\\
+- word -- удалить слово «word» из словаря. Программа должна вывести «OK», если слово существовало и было удалено, «NoSuchWord», если слово в словаре не было найдено.\\
+word — найти в словаре слово «word». Программа должна вывести «OK: 34», если слово было найдено; число, которое следует за «OK:» -- номер, присвоенный слову при добавлении. В случае, если слово в словаре не было обнаружено, нужно вывести строку «NoSuchWord».\\
+! Save /path/to/file -- сохранить словарь в бинарном компактном представлении на диск в файл, указанный параметром команды. В случае успеха, программа должна вывести «OK», в случае неудачи выполнения операции, программа должна вывести описание ошибки (см. ниже).\\
+! Load /path/to/file -- загрузить словарь из файла. Предполагается, что файл был ранее подготовлен при помощи команды Save. В случае успеха, программа должна вывести строку «OК», а загруженный словарь должен заменить текущий (с которым происходит работа); в случае неуспеха, должна быть выведена диагностика, а рабочий словарь должен остаться без изменений. Кроме системных ошибок, программа должна корректно обрабатывать случаи несовпадения формата указанного файла и представления данных словаря во внешнем файле.\\
+Создадим структуру $elem$ в которой будем хранить ключь и значение. Создадим структуру $node$ -- езел дерева, который содержит указатели на правого и левого потомка $left$ и $right$, показатель балансировки $bal$ и поле $data$ \begin{lstlisting}[language=C++]
+struct elem{
+    char* str;
+    size_t value;
+};
+struct node{
+    elem data;
+    int bal;
+    node* left;
+    node* right;
+    node(elem k) { data = k; left = right = NULL; bal = 0;}
+    ~node(){};  
+};	
+\end{lstlisting}
+Опишем функциии, необходимые для работы с деревом.
+\begin{longtable}{|p{7.5cm}|p{7.5cm}|}\hline\rowcolor{lightgray}\multicolumn{2}{|c|} {main.cpp}\\\hlinenode* RightRotation(node* root)& Малый правый поворот\\
+\hlinenode* LeftRotation(node* root)& Малый левый поворот\\
+\hlinenode* Balance(node* root)& Балансировка дерева\\
+\hlineint  Add(node** rootp, elem val) & Добавление элемента в дерерво\\
+\hlinenode* Find(node** rootp, char val[])& Поиск элемента по значению\\
+\hlinenode* FindMin(node** rootp)& Нахождение минимального элемента\\
+\hline
+int Remove(node** rootp, char val[])& Удаление элемента\\
+\hlinevoid Delete(node** rootp)& Удаление всего дерева\\
+\hlinevoid Serialization(node** rootp, FILE* f) & Сериализация\\\hlinenode* Deserialisation(FILE* f) & Десериализация\\\hline\end{longtable}
+\pagebreak
+
+\section{Консоль}\begin{alltt}dmitriy@dmitriy-desktop:~$ g++ -pedantic -Wall -Werror -std=c++11 LR2.cpp
+dmitriy@dmitriy-desktop:~$ ./a.out 
++ wtrttNwtwt 6356151351436705792
++ wtrttNwtw 11355346280444854272
++ wtrttNwt 6920329909665726464
++ wtrttNw 399671756802097152
++ wtrttN 11243149194066984960
++ wtrtt 5245798614692528128
++ wtrt 12751358511042461696
++ wtr 1814494297426624512
++ wt 9695799558577651712
++ w 3437433912018599936
+OK
+OK
+OK
+OK
+OK
+OK
+OK
+OK
+OK
+OK
+w
+OK: 3437433912018599936
+- w
+OK
+w
+NoSuchWord
++ wt 2342
+Exist
+! Save f1
+OK
++ w 324
+OK
+w
+OK: 324
+! Load f2
+ERROR: Couldn't create file
+! Load f1
+OK
+w
+NoSuchWord\end{alltt}\pagebreak
+\section{Тест производительности}Тест производительности представляет из себя следующее: реализованное АВЛ--дерево сравнивается со стандартным контейнером map. В ходе тестирования производятся запросы различного характера. Время измеряется в тактах процессора.\\
+Выпоняются 100 запросов различного характера(удаление, добавление и тд).\begin{alltt}dmitriy@dmitriy-desktop:~$ g++ benchmark.cpp 
+dmitriy@dmitriy-desktop:~$./a.out
+AVL time: 1643 
+MAP time: 944\end{alltt}Выполняютс $10^6$ запросов различного характера(удаление, добавление и тд).
+\begin{alltt}
+dmitriy@dmitriy-desktop:~$ ./a.out
+AVL time: 7184635
+MAP time: 20553412
+\end{alltt}
+Заметим, что реализованная структура и стандартный контейнер работают практически за одинаковое время.\pagebreak
+\section{Выводы}Выполнив вторую лабораторную работу по курсу \enquote{Дискретный анализ}, я изучил АВЛ -- дерево, а так же научился его реализовывать. Выполняя данную работу я впервые столкнулся с операциями сериализации и десериализация. В процессе написания соответствующих функций я подробно изучил работу с бинарными файлами в C++: функции fopen, fwrite, fread и др. Так же разробрал и написал алгоритмы сериализации и десериализация для АВЛ -- дерева\pagebreak
+\begin{thebibliography}{99}\bibitem{wikipedia_tree}{\itshape АВЛ -- дерево -- Википедия.} \\URL: \texttt{hhttps://ru.wikipedia.org/wiki/АВЛ--дерево} 
+\bibitem{wikipedia_avl}{\itshape АВЛ -- дерево -- Викиконспекты.} \\URL: \texttt{http://neerc.ifmo.ru/wiki/index.php?title=АВЛ--дерево} \end{thebibliography}\pagebreak
+\end {document}
